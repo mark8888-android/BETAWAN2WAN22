@@ -1,0 +1,6 @@
+{
+  "name": "WanStudio: Wan 2.1 & Wan 2.2 Neural Video Studio",
+  "description": "Free and open-source video generator powered by Wan 2.1 and Wan 2.2 with an In-Browser Neural Engine for WebGPU, WebNN, and WASM client-side acceleration.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
