@@ -52,6 +52,50 @@ export type CameraMotion =
   | 'drone_flythrough'
   | 'handheld_subtle';
 
+export type GenerationMode = 'hf-api' | 'local-gpu' | 'in-browser-webgpu';
+
+export interface HFAuthStatus {
+  connected: boolean;
+  username?: string;
+  name?: string;
+  avatarUrl?: string;
+  email?: string;
+  tokenPreview?: string;
+  isPro?: boolean;
+  rateLimitRemaining?: number;
+  error?: string;
+}
+
+export interface WeightDownloadItem {
+  id: string;
+  modelId: WanVersion;
+  task: WanTask;
+  repoId: string;
+  filename: string;
+  fileType: 'safetensors' | 'pth' | 'json' | 'bin';
+  totalBytes: number;
+  downloadedBytes: number;
+  status: 'idle' | 'downloading' | 'paused' | 'completed' | 'error';
+  speedBytesPerSec: number;
+  etaSeconds: number;
+  path: string;
+  description: string;
+  error?: string;
+}
+
+export interface GPUWorkerStatus {
+  status: 'idle' | 'busy' | 'downloading_weights' | 'offline';
+  device: string;
+  vramTotalMb: number;
+  vramUsedMb: number;
+  activeModel: string | null;
+  queueLength: number;
+  readyForInference: boolean;
+  cudaAvailable: boolean;
+  torchVersion: string;
+  safetensorsCachedCount: number;
+}
+
 export interface GenerationConfig {
   model: WanVersion;
   task: WanTask;
@@ -71,7 +115,10 @@ export interface GenerationConfig {
   endFrameImage?: string; // base64 or url for flf2v
   audioTrack?: string; // base64 or url for s2v
   executionEngine: ExecutionEngine;
+  generationMode: GenerationMode;
   fastPreviewMode: boolean;
+  hfToken?: string;
+  hfModelRepo?: string;
 }
 
 export type GenerationStage =

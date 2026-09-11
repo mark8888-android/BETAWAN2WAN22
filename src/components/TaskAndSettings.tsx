@@ -13,6 +13,11 @@ import {
   Volume2,
   ChevronDown,
   ChevronUp,
+  Server,
+  Cpu,
+  Key,
+  CheckCircle2,
+  FolderDown,
 } from 'lucide-react';
 import {
   WanVersion,
@@ -20,12 +25,17 @@ import {
   GenerationConfig,
   CameraMotion,
   ExecutionEngine,
+  GenerationMode,
+  HFAuthStatus,
 } from '../types';
 
 interface TaskAndSettingsProps {
   config: GenerationConfig;
   onChangeConfig: (newConfig: Partial<GenerationConfig>) => void;
   isGenerating: boolean;
+  hfStatus: HFAuthStatus;
+  onOpenHuggingFace: () => void;
+  onOpenWeightManager: () => void;
 }
 
 const WAN21_TASKS: { id: WanTask; name: string; desc: string; isNew?: boolean }[] = [
@@ -79,6 +89,9 @@ export const TaskAndSettings: React.FC<TaskAndSettingsProps> = ({
   config,
   onChangeConfig,
   isGenerating,
+  hfStatus,
+  onOpenHuggingFace,
+  onOpenWeightManager,
 }) => {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const tasks = config.model === 'wan2.1' ? WAN21_TASKS : WAN22_TASKS;
@@ -102,6 +115,124 @@ export const TaskAndSettings: React.FC<TaskAndSettingsProps> = ({
 
   return (
     <div className="space-y-4">
+      {/* Generation Engine & Backend Mode Selector */}
+      <div className="space-y-1.5 p-3.5 bg-zinc-950/70 border border-zinc-800 rounded-xl">
+        <label className="text-xs font-semibold text-zinc-200 flex items-center justify-between">
+          <span className="flex items-center gap-1.5">
+            <Server className="w-3.5 h-3.5 text-sky-400" />
+            Generation Pipeline &amp; Compute Source
+          </span>
+          <span className="text-[10px] text-zinc-400 font-mono">
+            {config.generationMode === 'hf-api'
+              ? 'Hugging Face Cloud API'
+              : config.generationMode === 'local-gpu'
+              ? 'Local PyTorch GPU Worker'
+              : 'In-Browser WebGPU'}
+          </span>
+        </label>
+
+        <div className="grid grid-cols-3 gap-1.5">
+          <button
+            type="button"
+            onClick={() => onChangeConfig({ generationMode: 'hf-api' })}
+            className={`p-2 rounded-lg border text-left transition-all ${
+              config.generationMode === 'hf-api'
+                ? 'bg-amber-500/15 border-amber-500/50 text-amber-200 shadow-sm shadow-amber-500/10'
+                : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-700'
+            }`}
+          >
+            <div className="flex items-center gap-1.5 font-bold text-xs">
+              <span>🤗</span>
+              <span>HF API</span>
+            </div>
+            <div className="text-[10px] opacity-75 mt-0.5 truncate">Real Cloud Video</div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onChangeConfig({ generationMode: 'local-gpu' })}
+            className={`p-2 rounded-lg border text-left transition-all ${
+              config.generationMode === 'local-gpu'
+                ? 'bg-indigo-500/15 border-indigo-500/50 text-indigo-200 shadow-sm shadow-indigo-500/10'
+                : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-700'
+            }`}
+          >
+            <div className="flex items-center gap-1.5 font-bold text-xs">
+              <Server className="w-3.5 h-3.5 text-indigo-400" />
+              <span>Heavy GPU</span>
+            </div>
+            <div className="text-[10px] opacity-75 mt-0.5 truncate">Local .safetensors</div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onChangeConfig({ generationMode: 'in-browser-webgpu' })}
+            className={`p-2 rounded-lg border text-left transition-all ${
+              config.generationMode === 'in-browser-webgpu'
+                ? 'bg-sky-500/15 border-sky-500/50 text-sky-200 shadow-sm shadow-sky-500/10'
+                : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-700'
+            }`}
+          >
+            <div className="flex items-center gap-1.5 font-bold text-xs">
+              <Cpu className="w-3.5 h-3.5 text-sky-400" />
+              <span>WebGPU</span>
+            </div>
+            <div className="text-[10px] opacity-75 mt-0.5 truncate">In-Browser Client</div>
+          </button>
+        </div>
+
+        {/* Dynamic Mode Helper / Alerts */}
+        {config.generationMode === 'hf-api' && (
+          <div className="mt-2 pt-2 border-t border-zinc-800/80">
+            {hfStatus.connected ? (
+              <div className="flex items-center justify-between text-xs text-emerald-400">
+                <span className="flex items-center gap-1.5 font-medium">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  Authenticated as @{hfStatus.username}
+                </span>
+                <button
+                  type="button"
+                  onClick={onOpenHuggingFace}
+                  className="text-[11px] text-sky-400 hover:underline"
+                >
+                  Configure Token
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between text-xs bg-amber-500/10 border border-amber-500/20 rounded-lg p-2 text-amber-300">
+                <span className="flex items-center gap-1.5">
+                  <Key className="w-3.5 h-3.5 text-amber-400" />
+                  Hugging Face Token needed for real API videos
+                </span>
+                <button
+                  type="button"
+                  onClick={onOpenHuggingFace}
+                  className="px-2 py-0.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/40 rounded font-semibold text-[11px] transition-colors"
+                >
+                  Enter Token
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {config.generationMode === 'local-gpu' && (
+          <div className="mt-2 pt-2 border-t border-zinc-800/80 flex items-center justify-between text-xs text-zinc-300">
+            <span className="text-[11px] text-zinc-400">
+              Executes on backend GPU worker with downloaded safetensors.
+            </span>
+            <button
+              type="button"
+              onClick={onOpenWeightManager}
+              className="text-[11px] text-indigo-400 hover:text-indigo-300 font-medium flex items-center gap-1"
+            >
+              <FolderDown className="w-3 h-3" />
+              <span>Weight Manager</span>
+            </button>
+          </div>
+        )}
+      </div>
+
       {/* Task Selector */}
       <div className="space-y-2">
         <label className="text-xs font-semibold text-zinc-200 flex items-center justify-between">
